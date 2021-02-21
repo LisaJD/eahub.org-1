@@ -224,6 +224,16 @@ ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_CONFIRM_EMAIL_ON_GET = True
 ACCOUNT_SIGNUP_PASSWORD_ENTER_TWICE = False
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
+SOCIALACCOUNT_PROVIDERS = {
+    "auth0": {
+        "AUTH0_URL": 'https://your.auth0domain.auth0.com',
+        "APP": {
+            "client_id": "123",
+            "secret": "456",
+            "key": ""
+        },
+    }
+}
 
 IS_ENABLE_ALGOLIA = env.str("IS_ENABLE_ALGOLIA", default=True)
 ALGOLIA = {
