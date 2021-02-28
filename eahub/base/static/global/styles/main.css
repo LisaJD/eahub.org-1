@@ -578,7 +578,7 @@ textarea {
 }
 
 .privacy-banner {
-  padding: 5px 5px 5px 5px;
+  padding: 5px 10px;
   border-radius: 5px;
   margin-top: 10px;
   display: inline-block;
@@ -588,13 +588,25 @@ textarea {
   margin-right: 5px;
 }
 
+.privacy-banner .fa-lock {
+  margin-right: 10px;
+}
+
 td .privacy-banner {
   margin-left: 5px;
-  margin-top: 0px;
+  margin-top: 0;
 }
 
 #report_abuse .control-label {
   display: none;
+}
+
+.profile-edit-privacy-note {
+  font-size: small;
+  font-style: italic;
+  margin-top: -5px;
+  margin-bottom: 15px;
+  display: block;
 }
 
 .other_info {

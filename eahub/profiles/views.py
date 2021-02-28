@@ -5,15 +5,15 @@ from django import http
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
-from django.core.mail import send_mail
+from django.core.mail import EmailMultiAlternatives
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
 from flags.state import flag_enabled
 
-from ..base.models import User
-from ..base.utils import get_feedback_url
+from ..base.models import FeedbackURLConfig, MessagingLog, User
+from ..base.utils import get_admin_email
 from ..base.views import (
     ReportAbuseView,
     SendMessageView,
@@ -95,28 +95,31 @@ class ReportProfileAbuseView(ReportAbuseView):
 
 
 class SendProfileMessageView(SendMessageView):
-    def profile(self):
+    def get_recipient(self):
         profile = Profile.objects.get(slug=self.kwargs["slug"])
-        if not (profile.allow_messaging):
-            raise http.Http404("user has turned off messaging")
+        if profile is None:
+            raise Exception("Could not find profile")
         return profile
 
     def form_valid(self, form):
-        recipient = Profile.objects.get(slug=self.kwargs["slug"])
+        message = form.cleaned_data["your_message"]
+        recipient = self.get_recipient()
         sender_name = form.cleaned_data["your_name"]
+        subject = f"{sender_name} wants to connect with {recipient.name}!"
         sender_email_address = form.cleaned_data["your_email_address"]
-        env = environ.Env()
-        admin_email = list(env.dict("ADMINS").values())[0]
-        feedback_url = get_feedback_url(self.request)
+        feedback_url = FeedbackURLConfig.get_solo().site_url
+        admins_email = get_admin_email()
+        profile_edit_url = self.request.build_absolute_uri(reverse("edit_profile"))
+
         txt_message = render_to_string(
             "emails/message_profile.txt",
             {
                 "sender_name": sender_name,
                 "recipient": recipient.name,
-                "message": form.cleaned_data["your_message"],
-                "user_profile": reverse("my_profile"),
-                "admin_email": admin_email,
+                "message": message,
+                "admin_email": admins_email,
                 "feedback_url": feedback_url,
+                "profile_edit_url": profile_edit_url,
             },
         )
         html_message = render_to_string(
@@ -124,33 +127,57 @@ class SendProfileMessageView(SendMessageView):
             {
                 "sender_name": sender_name,
                 "recipient": recipient.name,
-                "message": form.cleaned_data["your_message"],
-                "user_profile": reverse("my_profile"),
-                "admin_email": admin_email,
+                "message": message,
+                "admin_email": admins_email,
                 "feedback_url": feedback_url,
+                "profile_edit_url": profile_edit_url,
             },
         )
-        send_mail(
-            f"{sender_name} wants to connect with you!",
-            txt_message,
-            sender_email_address,
-            [recipient.user.email],
-            html_message=html_message,
+
+        email = EmailMultiAlternatives(
+            subject=subject,
+            body=txt_message,
+            from_email=admins_email,
+            to=[recipient.user.email],
+            reply_to=[sender_email_address],
         )
+        email.attach_alternative(html_message, "text/html")
+
+        email.send()
+
+        log = MessagingLog(
+            sender_email=sender_email_address,
+            recipient_email=recipient.user.email,
+            recipient_type=MessagingLog.USER,
+        )
+        log.save()
+
         messages.success(
             self.request, "Your message to " + recipient.name + " has been sent"
         )
         return redirect(reverse("profile", args=([recipient.slug])))
 
     def get(self, request, *args, **kwargs):
+        if not request.user.has_perm("profiles.message_users"):
+            raise PermissionDenied
+        recipient = self.get_recipient()
         if not flag_enabled("MESSAGING_FLAG", request=request):
-            raise Http404("Messaging not available for group")
-        return super().get(request, *args, **kwargs)
+            raise Http404("Messaging toggled off")
+        if recipient.get_can_receive_message():
+            return super().get(request, *args, **kwargs)
+        else:
+            raise Http404("Messaging not enabled for this user")
 
     def post(self, request, *args, **kwargs):
-        if not flag_enabled("MESSAGING_FLAG", request=request):
+        if not request.user.has_perm("profiles.message_users"):
             raise PermissionDenied
-        return super().post(request, *args, **kwargs)
+        recipient = self.get_recipient()
+        if not flag_enabled("MESSAGING_FLAG", request=request):
+            raise Http404("Messaging toggled off")
+        if recipient.get_can_receive_message():
+            return super().post(request, *args, **kwargs)
+        else:
+            raise Http404("Messaging not enabled for this user")
 
 
 @login_required

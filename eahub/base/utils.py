@@ -1,6 +1,6 @@
 import csv
 
-from django.contrib.sites.shortcuts import get_current_site
+import environ
 from django.http import HttpResponse
 
 from ..profiles import models
@@ -14,8 +14,9 @@ def user_display(user):
     return profile.name
 
 
-def get_feedback_url(request):
-    return f"https://feedback.{get_current_site(request).domain}"
+def get_admin_email():
+    env = environ.Env()
+    return list(env.dict("ADMINS").values())[0]
 
 
 class ExportCsvMixin:

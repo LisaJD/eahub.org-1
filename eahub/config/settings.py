@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     "rangefilter",
     "flags",
     "eahub.feedback.apps.FeedbackConfig",
+    "solo",
 ]
 
 MIDDLEWARE = [
@@ -83,7 +84,7 @@ DATABASES = {
     )
 }
 
-DEBUG = env.bool("DEBUG")
+DEBUG = env.bool("DEBUG", default=False)
 
 vars().update(
     env.email_url(
@@ -223,6 +224,7 @@ ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_CONFIRM_EMAIL_ON_GET = True
 ACCOUNT_SIGNUP_PASSWORD_ENTER_TWICE = False
+ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 
 IS_ENABLE_ALGOLIA = env.str("IS_ENABLE_ALGOLIA", default=True)
 ALGOLIA = {
@@ -321,7 +323,7 @@ ADMIN_REORDER = [
         "app": "sites",
         "label": "Website administration",
         "models": [
-            {"model": "auth.User", "label": "User accounts"},
+            {"model": "base.User", "label": "User accounts"},
             {"model": "account.EmailAddress", "label": "User account email addresses"},
             {"model": "auth.Group", "label": "Admin permission groups"},
             {"model": "sites.Site", "label": "Domain management & site name"},
@@ -330,6 +332,8 @@ ADMIN_REORDER = [
                 "model": "flags.FlagState",
                 "label": "Feature flags (beta features) configuration",
             },
+            {"model": "base.FeedbackURLConfig", "label": "URL of feedback page"},
+            {"model": "base.MessagingLog", "label": "Messaging logs"},
         ],
     },
 ]

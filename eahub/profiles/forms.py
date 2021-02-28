@@ -56,7 +56,6 @@ class EditProfileForm(forms.ModelForm):
             "city_or_town",
             "country",
             "is_public",
-            "email_visible",
             "allow_messaging",
         )
         widgets = {
@@ -77,7 +76,6 @@ class EditProfileForm(forms.ModelForm):
         labels = {
             "city_or_town": ("City/Town"),
             "is_public": "Show my profile to the public",
-            "email_visible": "Show my email address to other users",
             "allow_messaging": "Allow approved users to message me via email",
             "linkedin_url": "LinkedIn Profile",
             "facebook_url": "Facebook Profile",

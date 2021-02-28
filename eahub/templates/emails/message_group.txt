@@ -2,9 +2,15 @@ Dear {{ group_name }} admin,
 
 {{ sender_name }} has sent {{ group_name }} a message:
 
+---
 {{ message }}
+---
+
+You can respond to them by replying to this email.
 
 Thanks,
+
 EA Hub
 
-feedback: {{ feedback_url }} | Report an issue: Send an email to {{ admin_email }}
+Feedback: {{ feedback_url }}
+Report an issue: Email {{ admins_email }}

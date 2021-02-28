@@ -10,16 +10,44 @@
 
 <br><br>
 
-{% if first_visit %}
-  <div class="row">
-    <div class="col-sm-4 col-sm-offset-4 alert alert-info alert-dismissable profile-welcome">
-      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-      </button>
-      <p>Welcome to the EA Hub!</p>
-      <p>Please fill out your profile as much as you can so that other users can get to know you.</p>
+{% if messages %}
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4 col-md-offset-4">
+                {% for message in messages %}
+                    <div {% if message.tags %}
+                        class="alert alert-{{ message.tags }} hub-{{ message.tags }} alert alert-dismissable"{% endif %}>
+                        <button type="button" class="close" data-dismiss="alert"
+                            aria-label="Close"
+                        >
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                        <div>{{ message }}</div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
     </div>
-  </div>
+{% endif %}
+
+
+{% if first_visit %}
+    <div class="container-fluid">
+        <div class="row">
+            <div
+                class="col-sm-4 col-sm-offset-4 alert alert-info alert-dismissable profile-welcome"
+            >
+                <button type="button" class="close" data-dismiss="alert"
+                    aria-label="Close"
+                >
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <p>Welcome to the EA Hub!</p>
+                <p>Please fill out your profile as much as you can so that
+                    other users can get to know you.</p>
+            </div>
+        </div>
+    </div>
 {% endif %}
 
 <div class="container animated">
@@ -31,9 +59,13 @@
         <img class="profile_picture" src="/static/global/images/avatars/{{ profile.image_placeholder }}">
       {% endthumbnail %}
       {% if not profile.is_public %}
-      <div class="privacy-banner hub-info" title="This profile is not public. Click on 'Edit' to change your settings."><i class="fa fa-lock"></i>Private profile</div>
+      <div class="privacy-banner hub-info" title="This profile is not public. Click on 'Edit' to change your settings.">
+          <i class="fa fa-lock"></i>Private profile
+      </div>
       {% elif not profile.is_approved %}
-      <div class="privacy-banner hub-info" title="This profile has not yet been approved, so other people can't see it yet."><i class="fa fa-lock"></i>Awaiting approval</div>
+      <div class="privacy-banner hub-info" title="This profile has not yet been approved, so other people can't see it yet.">
+          <i class="fa fa-lock"></i>Awaiting approval
+      </div>
       {% endif %}
     </div>
     <div class="col-xs-12 col-md-6">
@@ -57,33 +89,20 @@
       {% endif %}
       {% load feature_flags %}
       {% flag_enabled 'MESSAGING_FLAG' as messaging_flag %}
-      {% if request.user.id is not None and request.user.id != profile.user_id and profile.user.email is not None and profile.allow_messaging is not False and messaging_flag %}
-      <div class="btn btn-default purple">
-        <span><a href="{% url 'message_profile' profile.slug  %}"><i class="fa fa-envelope"></i> Send Message</a></span>
-      </div>
+      {% if request.user.id is not None and request.user.id != profile.user_id and profile.get_can_receive_message and messaging_flag %}
+        <a href="{% url 'message_profile' profile.slug  %}">
+          <div class="btn btn-default purple">
+            <span><i class="fa fa-pencil-alt"></i> Send Message</span>
+          </div>
+        </a>
       {% endif %}
     </div>
   </div>
 </div>
 
 <br><br>
-{% if messages %}
-<div class="row">
-<div class="col-md-4 col-md-offset-4">
-    {% for message in messages %}
-    <div {% if message.tags %} class="alert alert-{{message.tags}} hub-{{message.tags}} alert alert-dismissable"{% endif %}>
-      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-        <span aria-hidden="true">&times;</span>
-      </button>
-      <div>{{ message }}</div>
-    </div>
-    {% endfor %}
-</div>
-</div>
-{% endif %}
 
 <div class="container profile-info profile-cards">
-
 
     <!-- cause area -->
     <div class="col-md-4">
@@ -221,13 +240,13 @@
             <div class="summary-panel-title">Summary</div>
             <div class="summary-panel-external-links turquoise-links">
               {% if profile.linkedin_url %}
-              <a href="{{ profile.linkedin_url }}"><i class="fab fa-linkedin-in"></i></a>
+              <a href="{{ profile.linkedin_url }}" rel="nofollow"><i class="fab fa-linkedin-in"></i></a>
               {% endif %}
               {% if profile.facebook_url %}
-              <a href="{{ profile.facebook_url }}"><i class="fab fa-facebook"></i></a>
+              <a href="{{ profile.facebook_url }}" rel="nofollow"><i class="fab fa-facebook"></i></a>
               {% endif %}
               {% if profile.personal_website_url %}
-              <a href="{{ profile.personal_website_url }}"><i class="fa fa-link"></i></a>
+              <a href="{{ profile.personal_website_url }}" rel="nofollow"><i class="fa fa-link"></i></a>
               {% endif %}
             </div>
           </div>
