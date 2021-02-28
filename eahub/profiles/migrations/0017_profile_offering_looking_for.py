@@ -6,9 +6,13 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
+<<<<<<< HEAD
     dependencies = [
         ("profiles", "0016_profileanalyticslog"),
     ]
+=======
+    dependencies = [("profiles", "0016_profileanalyticslog")]
+>>>>>>> pr/1110
 
     operations = [
         migrations.AddField(
